@@ -1,0 +1,37 @@
+{
+  "name": "avataruxslottest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel src/index.html",
+    "build": "parcel build src/index.html"
+  },
+  "staticFiles": {
+    "staticPath": "assets",
+    "staticOutPath": "assets"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@parcel/transformer-typescript-tsc": "^2.13.3",
+    "@types/node": "^20.11.5",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "parcel": "^2.13.3",
+    "parcel-reporter-static-files-copy": "^1.5.3",
+    "pixi.js": "^8.6.6",
+    "typescript": "^5.3.3"
+  },
+  "source": "src/index.html",
+  "targets": {
+    "default": {
+      "publicUrl": "./"
+    }
+  },
+  "dependencies": {
+    "gsap": "^3.12.7"
+  }
+}
