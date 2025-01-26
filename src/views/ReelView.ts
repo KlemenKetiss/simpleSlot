@@ -165,6 +165,13 @@ export class ReelView extends Container {
         return this.reelId;
     }
 
+    public getSymboInRow(row: number): SymbolView | null {
+        if (row >= 0 && row < this.symbols.length) {
+            return this.symbols[row];
+        }
+        return null;
+    }
+
     public dispose(): void {
         // Clean up all symbols
         this.symbols.forEach(symbol => {

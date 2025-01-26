@@ -2,6 +2,7 @@ import { Container, Text, Graphics } from 'pixi.js';
 import { GAME_HEIGHT } from '../utils/Constants';
 import { MainView } from './MainView';
 import { gsap } from 'gsap';
+import { Helper } from '../utils/Helper';
 export class PanelView extends Container {
     private spinButton!: Graphics;
     private balanceText!: Text;
@@ -67,7 +68,7 @@ export class PanelView extends Container {
     private initWinText(): void {
         // Create win text
         this.winText = new Text({
-            text: 'WIN: 0',
+            text: 'Win: 0',
             style: {
                 fontSize: 24,
                 fill: 0xFFFFFF,
@@ -82,9 +83,11 @@ export class PanelView extends Container {
             this.spinButton.interactive = false;
             MainView.getInstance.reelsView.emit('spinButtonClicked');
             this.spinButton.alpha = 0.5;
+            this.updateBalance(-10);
         });
         this.on('spinConcluded', () => {
             this.enableSpinButton();
+            this.calculateWin();
         });
     }
 
@@ -94,13 +97,26 @@ export class PanelView extends Container {
         this.spinButton.interactive = true;
     }
 
-    public updateBalance(newBalance: number): void {
-        this.balance = newBalance;
+    public updateBalance(win: number): void {
+        this.balance = this.balance + win;
         this.balanceText.text = `Balance: ${this.balance}`;
     }
 
     public updateWin(newWin: number): void {
         this.winText.text = `Win: ${newWin}`;
+    }
+
+    public calculateWin(): void {
+        const stops = MainView.getInstance.reelsView.getStops();
+        const { wins, totalWin } = Helper.checkForWinningWays(stops);
+        this.updateWin(totalWin);
+        this.updateBalance(totalWin);
+        // Highlight winning symbols
+        wins.forEach(win => {
+            win.positions.forEach(position => {
+                MainView.getInstance.reelsView.playWinAnimations(position.reel, position.row);
+            });
+        });
     }
 
     public dispose(): void {

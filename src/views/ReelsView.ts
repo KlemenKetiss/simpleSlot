@@ -91,7 +91,21 @@ export class ReelsView extends Container {
             }
             this.stops.push(tmp)
         }
-        console.log(this.stops);
+/*      this.stops = [
+        ['H6', 'M6', 'M6'],
+        ['H6', 'M6', 'H6'],
+        ['H6', 'M6', 'M6'],
+        ['H6', 'M6', 'M6'],
+        ['H6', 'M6', 'M6']
+       ]  */
+    }
+
+    public playWinAnimations(reel: number, row: number): void {
+        const reelView = this.reelViews[reel];
+        const symbolView = reelView.getSymboInRow(row);
+        if (symbolView) {
+            symbolView.playWinAnimation();
+        }
     }
 
     public dispose(): void {
@@ -105,6 +119,10 @@ export class ReelsView extends Container {
 
     public getStops(){
         return this.stops;
+    }
+
+    public getReelViews(){
+        return this.reelViews;
     }
 
     getNumberOfReels(){

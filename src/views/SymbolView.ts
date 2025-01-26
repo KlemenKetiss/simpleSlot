@@ -65,6 +65,11 @@ export class SymbolView extends Container {
         }
     }
 
+    public playWinAnimation(): void {
+        this.symbolTexture.visible = false;
+        this.symbolWinTexture.visible = true;
+    }
+
     // Getter for the sprite
     getSprite(): Sprite {
         return this.symbolTexture;
