@@ -3,6 +3,7 @@ import { ReelView } from './ReelView';
 import { Helper } from '../utils/Helper';
 import { gsap } from 'gsap';
 import { MainView } from './MainView';
+import { ReelModel } from '../models/ReelModel';
 interface ReelsViewOptions {
     numReels: number;
     numRows: number;
@@ -15,6 +16,7 @@ interface ReelsViewOptions {
 
 export class ReelsView extends Container {
     private reelViews: ReelView[] = [];
+    private reelModels: ReelModel[] = []; // Add reelModels array
     private options: ReelsViewOptions;
     public mask!: Graphics;
     public stops!: Array<Array<string>>;
@@ -29,14 +31,12 @@ export class ReelsView extends Container {
             yOffset: options.yOffset || 100,
             screenWidth: options.screenWidth || 800
         };
-        this.on('spinButtonClicked', () => {
-            console.log(MainView.getInstance.panelView.spinActive)
-            if(!MainView.getInstance.panelView.spinActive){
-                MainView.getInstance.panelView.spinActive = true;
-                this.generateStops();
-                this.spin();
-            }
-        });
+
+        // Initialize reel models
+        for (let i = 0; i < this.options.numReels; i++) {
+            this.reelModels.push(new ReelModel(i, this.options.numRows));
+        }
+
         this.initialize();
     }
 
@@ -62,36 +62,27 @@ export class ReelsView extends Container {
         this.createMask();
     }
 
+    public generateStops(): void {
+        this.stops = [];
+        // Use reelModels to generate stops
+        for (let i = 0; i < this.options.numReels; i++) {
+            this.stops.push(this.reelModels[i].getInitialSymbols());
+        }
+        console.log(this.stops);
+    }
+
     private createMask(): void {
-        // Create a graphics object to define our mask
         this.mask = new Graphics()
             .rect(0, 0, this.width, this.height)
             .fill(0xffffff);
-
-        // Add the mask to the container
         this.addChild(this.mask);
-        // Set the mask
         this.mask = this.mask;
     }
 
     public spin(): void {
-        // Spin reels sequentially with slight delay between each
         this.reelViews.forEach(reelView => {
             reelView.spin();
         });
-    }
-
-    private generateStops(){
-        this.stops = [];
-        // Create a 2D array of stops for each reel
-        for (let i = 0; i < this.options.numReels; i++) {
-            let tmp = []
-            for (let j = 0; j < this.options.numRows; j++) {
-                tmp.push(Helper.getRandomSymbol());
-            }
-            this.stops.push(tmp)
-        }
-        console.log(this.stops);
     }
 
     public dispose(): void {

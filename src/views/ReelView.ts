@@ -3,6 +3,7 @@ import { SymbolView } from './SymbolView';
 import { MainView } from './MainView';
 import gsap from 'gsap';
 import { Helper } from '../utils/Helper';
+import { ReelModel } from '../models/ReelModel';
 interface ReelViewOptions {
     symbolHeight: number;
     symbolSpacing: number;
@@ -11,6 +12,7 @@ interface ReelViewOptions {
 
 export class ReelView extends Container {
     private options: ReelViewOptions;
+    private reelModel: ReelModel;
     private reelId: number;
 
     private symbols: SymbolView[] = []; //Array of old stops
@@ -27,26 +29,21 @@ export class ReelView extends Container {
             symbolSpacing: options.symbolSpacing || 0,
             numRows: options.numRows || 3
         };
+        this.reelModel = new ReelModel(reelId, this.options.numRows);
         this.reelId = reelId;
         this.virtualReelContainer = new Container();
         this.stopsReel = new Container();
         this.initialize(this.options.numRows);
-
     }
 
     private initialize(numRows: number): void {
-        // Create initial symbols for the reel
+        // Create initial symbols using model data
+        const initialSymbols = this.reelModel.getSymbols();
         for (let i = 0; i < numRows; i++) {
-            // Create a default symbol (can be updated later)
-            const symbolView = new SymbolView(Helper.getRandomSymbol());
-            
-            // Position symbol vertically with spacing
+            const symbolView = new SymbolView(initialSymbols[i]);
             symbolView.y = i * (this.options.symbolHeight + this.options.symbolSpacing);
-            
-            // Center the symbol horizontally within the reel
             symbolView.x = 0;
             
-            // Add to our tracking array and to the container
             this.symbols.push(symbolView);
             this.stopsReel.addChild(symbolView)
         }
@@ -66,16 +63,13 @@ export class ReelView extends Container {
     }
 
     private setVirtualReel(virtualReelLength: number): void {
-        // Create container for virtual reel symbols
         this.addChild(this.virtualReelContainer);
-        const virtualReel = this.getVirtualReelOfLength(virtualReelLength, ["BONUS"]);
-        // Create new symbol views for virtual reel positions
+        const virtualReel = this.reelModel.getVirtualReelOfLength(virtualReelLength, ["BONUS"]);
         const stopSyms = MainView.getInstance.reelsView.getStops()[this.reelId];
         for(let i = 0; i < stopSyms.length; i++){
             const symbolView = new SymbolView(stopSyms[i]);
             // Position above visible symbols, above where virtual reel symbols will be
             symbolView.y = -this.options.symbolHeight * (virtualReel.length + stopSyms.length - i);
-            // Center horizontally like other symbols
             symbolView.x = 0;
             
             this.stops.push(symbolView);
@@ -86,7 +80,6 @@ export class ReelView extends Container {
             const symbolView = new SymbolView(symbolName);
             // Position above visible symbols but below stopSyms
             symbolView.y = -this.options.symbolHeight * (virtualReel.length - index);
-            // Center horizontally like other symbols
             symbolView.x = 0;
             
             this.virtualSymbols.push(symbolView);
@@ -147,22 +140,6 @@ export class ReelView extends Container {
         this.stopsReel.y = 0;
         // Clear virtual reel container but don't dispose symbols that were moved
         this.clearVirtualReel();
-    }
-
-    public getVirtualReelOfLength(length: number, symbolsToExclude: string[]): string[]{
-        let virtualReel: string[] = [];
-        for(let i = 0; i < length; i++){
-            let symbol = Helper.getRandomSymbol();
-            while(symbolsToExclude.includes(symbol)){
-                symbol = Helper.getRandomSymbol();
-            }
-            virtualReel.push(symbol);
-        }
-        return virtualReel;
-    }
-
-    public getReelId(): number {
-        return this.reelId;
     }
 
     public dispose(): void {

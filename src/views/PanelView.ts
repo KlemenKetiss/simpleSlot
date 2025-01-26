@@ -7,7 +7,6 @@ export class PanelView extends Container {
     private balanceText!: Text;
     private winText!: Text;
     private balance: number = 1000; // Starting balance
-    public spinActive!: boolean;
     constructor() {
         super();
         this.initialize();
@@ -15,7 +14,6 @@ export class PanelView extends Container {
     }
 
     private initialize(): void {
-        this.spinActive = false;
         this.initSpinButton();
         this.initBalanceText();
         this.initWinText();
@@ -78,9 +76,9 @@ export class PanelView extends Container {
 
     private setSpinButtonFunctionality(): void {    
         this.spinButton.on('pointerdown', () => {
-            if (this.spinActive) return;
+            if (MainView.getInstance.isSpinning()) return;
             this.spinButton.interactive = false;
-            MainView.getInstance.reelsView.emit('spinButtonClicked');
+            this.emit('spinButtonClicked');
             this.spinButton.alpha = 0.5;
         });
         this.on('spinConcluded', () => {
@@ -89,7 +87,6 @@ export class PanelView extends Container {
     }
 
     public enableSpinButton(){
-        this.spinActive = false;
         this.spinButton.alpha = 1;
         this.spinButton.interactive = true;
     }
