@@ -1,6 +1,4 @@
-import { Container } from "pixi.js";
-import { Sprite } from "pixi.js";
-import { Assets } from "pixi.js";
+import { Sprite, Assets, Container } from "pixi.js";
 import { SYMBOL_HEIGHT, SYMBOL_WIDTH } from "../utils/Constants";
 
 export class SymbolView extends Container {
@@ -59,6 +57,8 @@ export class SymbolView extends Container {
         if (this.symbolWinTexture) {
             this.symbolTexture.visible = false;
             this.symbolWinTexture.visible = true;
+        }else{
+            this.symbolTexture.alpha = 0.5;
         }
     }
 

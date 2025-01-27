@@ -6,6 +6,37 @@ export class Helper{
         return symbols[Math.floor(Math.random() * symbols.length)];
     }
 
+    public static getForceStops(index: number): Array<Array<string>> {
+        switch(index){
+            case 0:
+                return [
+                    ['H6', 'M6', 'H6'],
+                    ['H6', 'H6', 'A'], 
+                    ['J', 'H6', 'H6'],
+                    ['9', 'M3', 'H6'],
+                    ['H6', 'A', 'M2']
+                ];
+            case 1:
+                return [
+                    ['BONUS', 'BONUS', 'BONUS'],
+                    ['BONUS', 'BONUS', 'BONUS'],
+                    ['BONUS', 'BONUS', 'BONUS'], 
+                    ['BONUS', 'BONUS', 'BONUS'],
+                    ['BONUS', 'BONUS', 'BONUS']
+                ];
+            case 2:
+                return [
+                    ['A', 'A', '9'],
+                    ['M6', '9', 'A'],
+                    ['M6', 'A', '9'],
+                    ['A', 'A', '9'], 
+                    ['A', 'A', 'A']
+                ];
+            default:
+                return [];
+        }
+    }
+
     public static getSymbolPayout(symbol: string, numMatches: number = 3): number {
         // Define payout values for each symbol based on number of matches (3, 4, or 5)
         const payouts: { [key: string]: { [matches: number]: number } } = {

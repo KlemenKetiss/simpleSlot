@@ -1,7 +1,6 @@
 import { Container, Graphics } from 'pixi.js';
 import { ReelView } from './ReelView';
 import { Helper } from '../utils/Helper';
-import { gsap } from 'gsap';
 import { MainView } from './MainView';
 interface ReelsViewOptions {
     numReels: number;
@@ -18,6 +17,7 @@ export class ReelsView extends Container {
     private options: ReelsViewOptions;
     public mask!: Graphics;
     public stops!: Array<Array<string>>;
+    public forceStops: Array<Array<string>> = [];
     constructor(options: Partial<ReelsViewOptions> = {}) {
         super();
         this.options = {
@@ -33,7 +33,7 @@ export class ReelsView extends Container {
             console.log(MainView.getInstance.panelView.spinActive)
             if(!MainView.getInstance.panelView.spinActive){
                 MainView.getInstance.panelView.spinActive = true;
-                this.generateStops();
+                this.stops = this.forceStops.length > 0 ? this.forceStops : this.generateStops();
                 this.spin();
             }
         });
@@ -81,23 +81,17 @@ export class ReelsView extends Container {
         });
     }
 
-    private generateStops(){
-        this.stops = [];
+    private generateStops(): string[][] {
+        const stops: string[][] = [];
         // Create a 2D array of stops for each reel
         for (let i = 0; i < this.options.numReels; i++) {
-            let tmp = []
+            let tmp: string[] = []
             for (let j = 0; j < this.options.numRows; j++) {
                 tmp.push(Helper.getRandomSymbol());
             }
-            this.stops.push(tmp)
+            stops.push(tmp)
         }
-/*        this.stops = [
-        ['H6', 'H6', 'H6'],
-        ['H6', 'H6', 'H6'],
-        ['H6', 'H6', 'H6'],
-        ['H6', 'H6', 'H6'],
-        ['H6', 'H6', 'H6']
-       ]  */ 
+        return stops;
     }
 
     public playWinAnimations(reel: number, row: number): void {

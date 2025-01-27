@@ -25,12 +25,28 @@ export class Slot {
             }
             await Assets.loadBundle('game-bundle');
             this.initialize();
+            window.addEventListener('resize', () => this.onResize());
         });
     }
 
     public initialize(): void {
         this.mainView = MainView.getInstance;
         this.app.stage.addChild(this.mainView);
+        this.onResize();
+    }
 
+    private onResize(): void {
+        // Update app renderer size
+        this.app.renderer.resize(window.innerWidth, window.innerHeight);
+
+        // Calculate scale to fit the view
+        const scaleX = window.innerWidth / (GAME_WIDTH/2);
+        const scaleY = window.innerHeight / (GAME_HEIGHT/2);
+        const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
+
+        // Apply scale and center
+        this.mainView.scale.set(scale);
+        this.mainView.x = window.innerWidth / 2;
+        this.mainView.y = window.innerHeight / 2;
     }
 }

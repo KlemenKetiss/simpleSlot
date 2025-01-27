@@ -20,6 +20,7 @@ export class PanelView extends Container {
         this.initSpinButton();
         this.initBalanceText();
         this.initWinText();
+        this.createForceButtons();
 
         // Add elements to container
         this.addChild(this.spinButton);
@@ -40,15 +41,25 @@ export class PanelView extends Container {
         const spinText = new Text({
             text: 'SPIN',
             style: {
-                fontSize: 24,
+                fontSize: 28,
                 fill: 0xFFFFFF,
+                fontWeight: 'bold',
+                fontFamily: 'Arial',
+                letterSpacing: 2,
+                dropShadow: {
+                    alpha: 1,
+                    color: '#000000', 
+                    blur: 4,
+                    angle: Math.PI/6,
+                    distance: 2
+                },
             }
         });
 
         spinText.anchor.set(0.5);
-        spinText.position.set(60, 25);
+        spinText.position.set(-15, 25);
         this.spinButton.addChild(spinText);
-        this.spinButton.position.set(-this.spinButton.width/2, GAME_HEIGHT/2 - 200 - this.spinButton.height/2);
+        this.spinButton.position.set((this.spinButton.width/2), (GAME_HEIGHT/2) - (this.spinButton.height/2) - 300);
 
         this.setSpinButtonFunctionality();
     }
@@ -56,13 +67,13 @@ export class PanelView extends Container {
     private initBalanceText(): void {
         // Create balance text
         this.balanceText = new Text({
-            text: `Balance: ${this.balance}`,
+            text: `Credits: ${this.balance} €`,
             style: {
                 fontSize: 24,
                 fill: 0xFFFFFF,
             }
         });
-        this.balanceText.position.set(300, GAME_HEIGHT/2 - 200);
+        this.balanceText.position.set(-230, GAME_HEIGHT/2 - 200);
     }
 
     private initWinText(): void {
@@ -74,7 +85,7 @@ export class PanelView extends Container {
                 fill: 0xFFFFFF,
             }
         });
-        this.winText.position.set(-300, GAME_HEIGHT/2 - 200);
+        this.winText.position.set(230, GAME_HEIGHT/2 - 200);
     }
 
     private setSpinButtonFunctionality(): void {    
@@ -86,6 +97,7 @@ export class PanelView extends Container {
             this.updateBalance(-10);
         });
         this.on('spinConcluded', () => {
+            MainView.getInstance.reelsView.forceStops = [];
             this.enableSpinButton();
             this.calculateWin();
         });
@@ -99,11 +111,11 @@ export class PanelView extends Container {
 
     public updateBalance(win: number): void {
         this.balance = this.balance + win;
-        this.balanceText.text = `Balance: ${this.balance}`;
+        this.balanceText.text = `Credits: ${this.balance} €`;
     }
 
     public updateWin(newWin: number): void {
-        this.winText.text = `Win: ${newWin}`;
+        this.winText.text = `Win: ${newWin} €`;
     }
 
     public calculateWin(): void {
@@ -117,6 +129,55 @@ export class PanelView extends Container {
                 MainView.getInstance.reelsView.playWinAnimations(position.reel, position.row);
             });
         });
+    }
+
+    private createForceButtons(): void {
+        const buttonStyle = {
+            fontSize: 24,
+            fill: 0xFFFFFF,
+        };
+
+        // Create and position bet buttons
+        for (let i = 1; i <= 3; i++) {
+            const button = new Container();
+            
+            // Create button background
+            const bg = new Graphics().roundRect(0, 0, 50, 50, 10);
+            bg.fill(0x4cb84c);
+            
+            // Create button text
+            const text = new Text({
+                text: `${i}.`,
+                style: buttonStyle
+            });
+            text.anchor.set(0.5);
+            text.position.set(25, 25);
+            
+            button.addChild(bg, text);
+            button.position.set(-300, -30+(i - 2) * 60); // Center vertically with 60px spacing
+            
+            // Make button interactive
+            button.eventMode = 'static';
+            button.cursor = 'pointer';
+            button.on('pointerdown', () => {
+                // Visual feedback
+                button.alpha = 0.5;
+
+                if(i == 1){
+                    MainView.getInstance.reelsView.forceStops = Helper.getForceStops(0);
+                }
+                if(i == 2){
+                    MainView.getInstance.reelsView.forceStops = Helper.getForceStops(1);
+                }
+                if(i == 3){
+                    MainView.getInstance.reelsView.forceStops = Helper.getForceStops(2);
+                }
+            });
+            button.on('pointerup', () => {
+                button.alpha = 1;
+            });
+            this.addChild(button);
+        }
     }
 
     public dispose(): void {
