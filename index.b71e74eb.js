@@ -629,11 +629,25 @@ class Slot {
             }
             await (0, _pixiJs.Assets).loadBundle('game-bundle');
             this.initialize();
+            window.addEventListener('resize', ()=>this.onResize());
         });
     }
     initialize() {
         this.mainView = (0, _mainView.MainView).getInstance;
         this.app.stage.addChild(this.mainView);
+        this.onResize();
+    }
+    onResize() {
+        // Update app renderer size
+        this.app.renderer.resize(window.innerWidth, window.innerHeight);
+        // Calculate scale to fit the view
+        const scaleX = window.innerWidth / ((0, _constants.GAME_WIDTH) / 2);
+        const scaleY = window.innerHeight / ((0, _constants.GAME_HEIGHT) / 2);
+        const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
+        // Apply scale and center
+        this.mainView.scale.set(scale);
+        this.mainView.x = window.innerWidth / 2;
+        this.mainView.y = window.innerHeight / 2;
     }
 }
 
@@ -52292,7 +52306,7 @@ var _helper = require("../utils/Helper");
 var _mainView = require("./MainView");
 class ReelsView extends (0, _pixiJs.Container) {
     constructor(options = {}){
-        super(), this.reelViews = [];
+        super(), this.reelViews = [], this.forceStops = [];
         this.options = {
             numReels: options.numReels || 5,
             numRows: options.numRows || 3,
@@ -52306,7 +52320,7 @@ class ReelsView extends (0, _pixiJs.Container) {
             console.log((0, _mainView.MainView).getInstance.panelView.spinActive);
             if (!(0, _mainView.MainView).getInstance.panelView.spinActive) {
                 (0, _mainView.MainView).getInstance.panelView.spinActive = true;
-                this.generateStops();
+                this.stops = this.forceStops.length > 0 ? this.forceStops : this.generateStops();
                 this.spin();
             }
         });
@@ -52345,20 +52359,15 @@ class ReelsView extends (0, _pixiJs.Container) {
         });
     }
     generateStops() {
-        this.stops = [];
+        const stops = [];
         // Create a 2D array of stops for each reel
         for(let i = 0; i < this.options.numReels; i++){
             let tmp = [];
             for(let j = 0; j < this.options.numRows; j++)tmp.push((0, _helper.Helper).getRandomSymbol());
-            this.stops.push(tmp);
+            stops.push(tmp);
         }
-    /*        this.stops = [
-        ['H6', 'H6', 'H6'],
-        ['H6', 'H6', 'H6'],
-        ['H6', 'H6', 'H6'],
-        ['H6', 'H6', 'H6'],
-        ['H6', 'H6', 'H6']
-       ]  */ }
+        return stops;
+    }
     playWinAnimations(reel, row) {
         const reelView = this.reelViews[reel];
         const symbolView = reelView.getSymboInRow(row);
@@ -52582,7 +52591,7 @@ class SymbolView extends (0, _pixiJs.Container) {
         if (this.symbolWinTexture) {
             this.symbolTexture.visible = false;
             this.symbolWinTexture.visible = true;
-        }
+        } else this.symbolTexture.alpha = 0.5;
     }
     // Getter for the sprite
     getSprite() {
@@ -56656,6 +56665,96 @@ class Helper {
         // Get random index
         return symbols[Math.floor(Math.random() * symbols.length)];
     }
+    static getForceStops(index) {
+        switch(index){
+            case 0:
+                return [
+                    [
+                        'H6',
+                        'M6',
+                        'H6'
+                    ],
+                    [
+                        'H6',
+                        'H6',
+                        'A'
+                    ],
+                    [
+                        'J',
+                        'H6',
+                        'H6'
+                    ],
+                    [
+                        '9',
+                        'M3',
+                        'H6'
+                    ],
+                    [
+                        'H6',
+                        'A',
+                        'M2'
+                    ]
+                ];
+            case 1:
+                return [
+                    [
+                        'BONUS',
+                        'BONUS',
+                        'BONUS'
+                    ],
+                    [
+                        'BONUS',
+                        'BONUS',
+                        'BONUS'
+                    ],
+                    [
+                        'BONUS',
+                        'BONUS',
+                        'BONUS'
+                    ],
+                    [
+                        'BONUS',
+                        'BONUS',
+                        'BONUS'
+                    ],
+                    [
+                        'BONUS',
+                        'BONUS',
+                        'BONUS'
+                    ]
+                ];
+            case 2:
+                return [
+                    [
+                        'A',
+                        'A',
+                        '9'
+                    ],
+                    [
+                        'M6',
+                        '9',
+                        'A'
+                    ],
+                    [
+                        'M6',
+                        'A',
+                        '9'
+                    ],
+                    [
+                        'A',
+                        'A',
+                        '9'
+                    ],
+                    [
+                        'A',
+                        'A',
+                        'A'
+                    ]
+                ];
+            default:
+                return [];
+        }
+    }
     static getSymbolPayout(symbol, numMatches = 3) {
         // Define payout values for each symbol based on number of matches (3, 4, or 5)
         const payouts = {
@@ -56843,6 +56942,7 @@ class PanelView extends (0, _pixiJs.Container) {
         this.initSpinButton();
         this.initBalanceText();
         this.initWinText();
+        this.createForceButtons();
         // Add elements to container
         this.addChild(this.spinButton);
         this.addChild(this.balanceText);
@@ -56859,26 +56959,36 @@ class PanelView extends (0, _pixiJs.Container) {
         const spinText = new (0, _pixiJs.Text)({
             text: 'SPIN',
             style: {
-                fontSize: 24,
-                fill: 0xFFFFFF
+                fontSize: 28,
+                fill: 0xFFFFFF,
+                fontWeight: 'bold',
+                fontFamily: 'Arial',
+                letterSpacing: 2,
+                dropShadow: {
+                    alpha: 1,
+                    color: '#000000',
+                    blur: 4,
+                    angle: Math.PI / 6,
+                    distance: 2
+                }
             }
         });
         spinText.anchor.set(0.5);
-        spinText.position.set(60, 25);
+        spinText.position.set(-15, 25);
         this.spinButton.addChild(spinText);
-        this.spinButton.position.set(-this.spinButton.width / 2, (0, _constants.GAME_HEIGHT) / 2 - 200 - this.spinButton.height / 2);
+        this.spinButton.position.set(this.spinButton.width / 2, (0, _constants.GAME_HEIGHT) / 2 - this.spinButton.height / 2 - 300);
         this.setSpinButtonFunctionality();
     }
     initBalanceText() {
         // Create balance text
         this.balanceText = new (0, _pixiJs.Text)({
-            text: `Balance: ${this.balance}`,
+            text: `Credits: ${this.balance} \u{20AC}`,
             style: {
                 fontSize: 24,
                 fill: 0xFFFFFF
             }
         });
-        this.balanceText.position.set(300, (0, _constants.GAME_HEIGHT) / 2 - 200);
+        this.balanceText.position.set(-230, (0, _constants.GAME_HEIGHT) / 2 - 200);
     }
     initWinText() {
         // Create win text
@@ -56889,7 +56999,7 @@ class PanelView extends (0, _pixiJs.Container) {
                 fill: 0xFFFFFF
             }
         });
-        this.winText.position.set(-300, (0, _constants.GAME_HEIGHT) / 2 - 200);
+        this.winText.position.set(230, (0, _constants.GAME_HEIGHT) / 2 - 200);
     }
     setSpinButtonFunctionality() {
         this.spinButton.on('pointerdown', ()=>{
@@ -56900,6 +57010,7 @@ class PanelView extends (0, _pixiJs.Container) {
             this.updateBalance(-10);
         });
         this.on('spinConcluded', ()=>{
+            (0, _mainView.MainView).getInstance.reelsView.forceStops = [];
             this.enableSpinButton();
             this.calculateWin();
         });
@@ -56911,10 +57022,10 @@ class PanelView extends (0, _pixiJs.Container) {
     }
     updateBalance(win) {
         this.balance = this.balance + win;
-        this.balanceText.text = `Balance: ${this.balance}`;
+        this.balanceText.text = `Credits: ${this.balance} \u{20AC}`;
     }
     updateWin(newWin) {
-        this.winText.text = `Win: ${newWin}`;
+        this.winText.text = `Win: ${newWin} \u{20AC}`;
     }
     calculateWin() {
         const stops = (0, _mainView.MainView).getInstance.reelsView.getStops();
@@ -56927,6 +57038,42 @@ class PanelView extends (0, _pixiJs.Container) {
                 (0, _mainView.MainView).getInstance.reelsView.playWinAnimations(position.reel, position.row);
             });
         });
+    }
+    createForceButtons() {
+        const buttonStyle = {
+            fontSize: 24,
+            fill: 0xFFFFFF
+        };
+        // Create and position bet buttons
+        for(let i = 1; i <= 3; i++){
+            const button = new (0, _pixiJs.Container)();
+            // Create button background
+            const bg = new (0, _pixiJs.Graphics)().roundRect(0, 0, 50, 50, 10);
+            bg.fill(0x4cb84c);
+            // Create button text
+            const text = new (0, _pixiJs.Text)({
+                text: `${i}.`,
+                style: buttonStyle
+            });
+            text.anchor.set(0.5);
+            text.position.set(25, 25);
+            button.addChild(bg, text);
+            button.position.set(-300, -30 + (i - 2) * 60); // Center vertically with 60px spacing
+            // Make button interactive
+            button.eventMode = 'static';
+            button.cursor = 'pointer';
+            button.on('pointerdown', ()=>{
+                // Visual feedback
+                button.alpha = 0.5;
+                if (i == 1) (0, _mainView.MainView).getInstance.reelsView.forceStops = (0, _helper.Helper).getForceStops(0);
+                if (i == 2) (0, _mainView.MainView).getInstance.reelsView.forceStops = (0, _helper.Helper).getForceStops(1);
+                if (i == 3) (0, _mainView.MainView).getInstance.reelsView.forceStops = (0, _helper.Helper).getForceStops(2);
+            });
+            button.on('pointerup', ()=>{
+                button.alpha = 1;
+            });
+            this.addChild(button);
+        }
     }
     dispose() {
         this.removeChildren();
