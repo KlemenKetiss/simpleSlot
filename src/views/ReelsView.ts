@@ -91,13 +91,13 @@ export class ReelsView extends Container {
             }
             this.stops.push(tmp)
         }
-/*      this.stops = [
-        ['H6', 'M6', 'M6'],
-        ['H6', 'M6', 'H6'],
-        ['H6', 'M6', 'M6'],
-        ['H6', 'M6', 'M6'],
-        ['H6', 'M6', 'M6']
-       ]  */
+/*        this.stops = [
+        ['H6', 'H6', 'H6'],
+        ['H6', 'H6', 'H6'],
+        ['H6', 'H6', 'H6'],
+        ['H6', 'H6', 'H6'],
+        ['H6', 'H6', 'H6']
+       ]  */ 
     }
 
     public playWinAnimations(reel: number, row: number): void {

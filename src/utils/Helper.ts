@@ -34,61 +34,69 @@ export class Helper{
     }
 
     public static checkForWinningWays(stops: Array<Array<string>>): { wins: Array<{ symbol: string, count: number, positions: Array<{reel: number, row: number}> }>, totalWin: number } {
+        // Array to store all winning combinations found
         let wins: Array<{ symbol: string, count: number, positions: Array<{reel: number, row: number}> }> = [];
+        // Total win amount across all winning combinations
         let totalWin = 0;
 
-        // Track symbols we've already processed
+        // Keep track of symbols we've already evaluated to avoid duplicate processing
         let processedSymbols = new Set<string>();
 
-        // For each unique symbol in first reel
+        // Evaluate each row in the first reel as a starting point
         for (let row = 0; row < stops[0].length; row++) {
             const currentSymbol = stops[0][row];
             
-            // Skip if we've already processed this symbol
+            // Skip if we've already processed this symbol from another row
             if (processedSymbols.has(currentSymbol)) continue;
             processedSymbols.add(currentSymbol);
 
-            // Count consecutive reels with the symbol
-            let consecutiveReels = 1;
-            let symbolMultiplier = 1;
-            let winningPositions: Array<{reel: number, row: number}> = [];
+            // Initialize tracking variables for this symbol evaluation
+            let consecutiveReels = 1; // Count of consecutive reels containing the symbol
+            let symbolMultiplier = 1; // Multiplier based on number of symbols in each reel
+            let winningPositions: Array<{reel: number, row: number}> = []; // Track positions for win highlighting
             
-            // Add positions from first reel
+            // First, collect all positions of the current symbol in the first reel
             stops[0].forEach((symbol, rowIndex) => {
                 if (symbol === currentSymbol) {
                     winningPositions.push({reel: 0, row: rowIndex});
                 }
             });
 
-            // Count occurrences in first reel
+            // Count how many times the symbol appears in the first reel
+            // This forms the base of our multiplier calculation
             let firstReelCount = stops[0].filter(s => s === currentSymbol).length;
             symbolMultiplier *= firstReelCount;
 
-            // Check consecutive reels
+            // Check subsequent reels for the same symbol
             for (let reel = 1; reel < stops.length; reel++) {
+                // Count occurrences of our symbol in this reel
                 const symbolsInReel = stops[reel].filter(s => s === currentSymbol).length;
                 
                 if (symbolsInReel > 0) {
-                    // Add positions for this reel
+                    // If symbol exists in this reel, collect all its positions
                     stops[reel].forEach((symbol, rowIndex) => {
                         if (symbol === currentSymbol) {
                             winningPositions.push({reel, row: rowIndex});
                         }
                     });
                     
-                    consecutiveReels++;
-                    symbolMultiplier *= symbolsInReel;
+                    consecutiveReels++; // Increment our consecutive reel counter
+                    symbolMultiplier *= symbolsInReel; // Multiply by number of symbols in this reel
                 } else {
+                    // If we don't find the symbol, stop checking further reels
                     break;
                 }
             }
 
-            // If we have 3 or more consecutive reels
+            // Only process wins of 3 or more consecutive reels
             if (consecutiveReels >= 3) {
+                // Get the base payout for this symbol and number of consecutive reels
                 const baseWin = Helper.getSymbolPayout(currentSymbol, consecutiveReels);
+                // Calculate total win by multiplying base win by our accumulated multiplier
                 const totalSymbolWin = baseWin * symbolMultiplier;
                 totalWin += totalSymbolWin;
                 
+                // Record this winning combination
                 wins.push({
                     symbol: currentSymbol,
                     count: consecutiveReels,
@@ -97,6 +105,7 @@ export class Helper{
             }
         }
 
+        // Return both the winning combinations and total win amount
         return {
             wins,
             totalWin
