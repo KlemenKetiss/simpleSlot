@@ -716,7 +716,6 @@ class MainView extends (0, _pixiJs.Container) {
         // Position the container in the center of the screen
         this.position.set((0, _constants.GAME_WIDTH) / 2, (0, _constants.GAME_HEIGHT) / 2);
         // Add a simple graphic to visualize MainView loading
-        console.log('MainView initialized');
         if (MainView.instance == null) MainView.instance = this;
         this.addReelsView();
         this.addPanelView();
@@ -52299,14 +52298,21 @@ function logRenderGroupScene(renderGroup, depth = 0, data = {
 },{}],"lnTSH":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "GameMode", ()=>GameMode);
 parcelHelpers.export(exports, "ReelsView", ()=>ReelsView);
 var _pixiJs = require("pixi.js");
 var _reelView = require("./ReelView");
 var _helper = require("../utils/Helper");
 var _mainView = require("./MainView");
+var GameMode = /*#__PURE__*/ function(GameMode) {
+    GameMode["NORMAL"] = "NORMAL";
+    GameMode["BONUS"] = "BONUS";
+    GameMode["FREESPINS"] = "FREESPINS";
+    return GameMode;
+}({});
 class ReelsView extends (0, _pixiJs.Container) {
     constructor(options = {}){
-        super(), this.reelViews = [], this.forceStops = [];
+        super(), this.reelViews = [], this.forceStops = [], this.currentGameMode = "NORMAL";
         this.options = {
             numReels: options.numReels || 5,
             numRows: options.numRows || 3,
@@ -52317,7 +52323,6 @@ class ReelsView extends (0, _pixiJs.Container) {
             screenWidth: options.screenWidth || 800
         };
         this.on('spinButtonClicked', ()=>{
-            console.log((0, _mainView.MainView).getInstance.panelView.spinActive);
             if (!(0, _mainView.MainView).getInstance.panelView.spinActive) {
                 (0, _mainView.MainView).getInstance.panelView.spinActive = true;
                 this.stops = this.forceStops.length > 0 ? this.forceStops : this.generateStops();
@@ -52373,6 +52378,21 @@ class ReelsView extends (0, _pixiJs.Container) {
         const symbolView = reelView.getSymboInRow(row);
         if (symbolView) symbolView.playWinAnimation();
     }
+    checkBonusCondition() {
+        // Check for BONUS symbols
+        let bonusCount = 0;
+        this.stops.forEach((reel)=>{
+            reel.forEach((symbol)=>{
+                if (symbol === 'BONUS') bonusCount++;
+            });
+        });
+        // Update game mode if 3 or more BONUS symbols
+        if (bonusCount >= 3) {
+            (0, _mainView.MainView).getInstance.reelsView.setGameMode("BONUS");
+            console.log('Entering BONUS mode!');
+        // Here you can add additional bonus mode initialization logic
+        } else (0, _mainView.MainView).getInstance.reelsView.setGameMode("NORMAL");
+    }
     dispose() {
         // Clean up all reel views
         this.reelViews.forEach((reelView)=>{
@@ -52389,6 +52409,12 @@ class ReelsView extends (0, _pixiJs.Container) {
     }
     getNumberOfReels() {
         return this.options.numReels;
+    }
+    getGameMode() {
+        return this.currentGameMode;
+    }
+    setGameMode(mode) {
+        this.currentGameMode = mode;
     }
 }
 
@@ -52562,7 +52588,7 @@ class SymbolView extends (0, _pixiJs.Container) {
             this.symbolTexture.width = (0, _constants.SYMBOL_WIDTH);
             this.symbolTexture.height = (0, _constants.SYMBOL_HEIGHT);
             this.addChild(this.symbolTexture);
-            const winTexture = (0, _pixiJs.Assets).get(`${symbolName}_connect`);
+            const winTexture = this._symbolName === 'BONUS' ? null : (0, _pixiJs.Assets).get(`${symbolName}_connect`);
             if (winTexture) {
                 this.symbolWinTexture = new (0, _pixiJs.Sprite)(winTexture);
                 this.symbolWinTexture.width = (0, _constants.SYMBOL_WIDTH);
@@ -57030,6 +57056,7 @@ class PanelView extends (0, _pixiJs.Container) {
     calculateWin() {
         const stops = (0, _mainView.MainView).getInstance.reelsView.getStops();
         const { wins, totalWin } = (0, _helper.Helper).checkForWinningWays(stops);
+        (0, _mainView.MainView).getInstance.reelsView.checkBonusCondition();
         this.updateWin(totalWin);
         this.updateBalance(totalWin);
         // Highlight winning symbols
