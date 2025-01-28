@@ -20,7 +20,7 @@ export class SymbolView extends Container {
             this.symbolTexture.height = SYMBOL_HEIGHT;
             this.addChild(this.symbolTexture);
 
-            const winTexture = Assets.get(`${symbolName}_connect`);
+            const winTexture = this._symbolName === 'BONUS' ? null : Assets.get(`${symbolName}_connect`);
             if(winTexture){ //Check if the win texture exists
                 this.symbolWinTexture = new Sprite(winTexture);
                 this.symbolWinTexture.width = SYMBOL_WIDTH;

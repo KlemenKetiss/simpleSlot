@@ -3,6 +3,7 @@ import { GAME_HEIGHT } from '../utils/Constants';
 import { MainView } from './MainView';
 import { gsap } from 'gsap';
 import { Helper } from '../utils/Helper';
+import { GameMode } from './ReelsView';
 export class PanelView extends Container {
     private spinButton!: Graphics;
     private balanceText!: Text;
@@ -121,6 +122,8 @@ export class PanelView extends Container {
     public calculateWin(): void {
         const stops = MainView.getInstance.reelsView.getStops();
         const { wins, totalWin } = Helper.checkForWinningWays(stops);
+        MainView.getInstance.reelsView.checkBonusCondition();
+
         this.updateWin(totalWin);
         this.updateBalance(totalWin);
         // Highlight winning symbols

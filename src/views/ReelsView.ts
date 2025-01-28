@@ -2,6 +2,13 @@ import { Container, Graphics } from 'pixi.js';
 import { ReelView } from './ReelView';
 import { Helper } from '../utils/Helper';
 import { MainView } from './MainView';
+
+export enum GameMode {
+    NORMAL = 'NORMAL',
+    BONUS = 'BONUS',
+    FREESPINS = 'FREESPINS'
+}
+
 interface ReelsViewOptions {
     numReels: number;
     numRows: number;
@@ -18,6 +25,8 @@ export class ReelsView extends Container {
     public mask!: Graphics;
     public stops!: Array<Array<string>>;
     public forceStops: Array<Array<string>> = [];
+    private currentGameMode: GameMode = GameMode.NORMAL;
+
     constructor(options: Partial<ReelsViewOptions> = {}) {
         super();
         this.options = {
@@ -30,7 +39,6 @@ export class ReelsView extends Container {
             screenWidth: options.screenWidth || 800
         };
         this.on('spinButtonClicked', () => {
-            console.log(MainView.getInstance.panelView.spinActive)
             if(!MainView.getInstance.panelView.spinActive){
                 MainView.getInstance.panelView.spinActive = true;
                 this.stops = this.forceStops.length > 0 ? this.forceStops : this.generateStops();
@@ -102,6 +110,27 @@ export class ReelsView extends Container {
         }
     }
 
+    public checkBonusCondition(): void {
+        // Check for BONUS symbols
+        let bonusCount = 0;
+        this.stops.forEach(reel => {
+            reel.forEach(symbol => {
+                if (symbol === 'BONUS') {
+                    bonusCount++;
+                }
+            });
+        });
+
+        // Update game mode if 3 or more BONUS symbols
+        if (bonusCount >= 3) {
+            MainView.getInstance.reelsView.setGameMode(GameMode.BONUS);
+            console.log('Entering BONUS mode!');
+            // Here you can add additional bonus mode initialization logic
+        } else {
+            MainView.getInstance.reelsView.setGameMode(GameMode.NORMAL);
+        }
+    }
+
     public dispose(): void {
         // Clean up all reel views
         this.reelViews.forEach(reelView => {
@@ -119,8 +148,16 @@ export class ReelsView extends Container {
         return this.reelViews;
     }
 
-    getNumberOfReels(){
+    public getNumberOfReels(){
         return this.options.numReels;
+    }
+
+    public getGameMode(): GameMode {
+        return this.currentGameMode;
+    }
+
+    public setGameMode(mode: GameMode): void {
+        this.currentGameMode = mode;
     }
 
 }

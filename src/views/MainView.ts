@@ -28,7 +28,6 @@ export class MainView extends Container {
         // Position the container in the center of the screen
         this.position.set(GAME_WIDTH / 2, GAME_HEIGHT / 2);
         // Add a simple graphic to visualize MainView loading
-        console.log('MainView initialized');
         if (MainView.instance == null) MainView.instance = this;
 
         this.addReelsView();
